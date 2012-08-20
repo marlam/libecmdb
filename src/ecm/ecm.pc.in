@@ -1,0 +1,21 @@
+# Copyright (C) 2012
+# Martin Lambers <martin.lambers@uni-siegen.de>
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice and this
+# notice are preserved. This file is offered as-is, without any warranty.
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: ecm
+Description: Library to access Ellipsoid Cube Map (ECM) data bases
+URL: @PACKAGE_URL@
+Version: @PACKAGE_VERSION@
+Requires:
+Requires.private: gta
+Libs: -L${libdir} -lecm
+Libs.private: @LTLIBJPEG@
+Cflags: -I${includedir}
