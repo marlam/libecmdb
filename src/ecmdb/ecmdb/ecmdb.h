@@ -18,14 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ECM_DB_H
-#define ECM_DB_H
+#ifndef ECMDB_H
+#define ECMDB_H
 
 #include <vector>
 #include <string>
 #include <cstdint>
 
-#include <ecm/ecm.h>
+#include <ecmdb/ecm.h>
 
 /**
  * \file ecmdb.h

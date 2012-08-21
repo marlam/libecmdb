@@ -26,9 +26,6 @@
 
 #include <gta/gta.hpp>
 
-#include "ecm/ecm.h"
-#include "ecm/ecmdb.h"
-
 #include "dbg.h"
 #include "exc.h"
 #include "msg.h"
@@ -37,6 +34,7 @@
 #include "s11n.h"
 #include "blob.h"
 
+#include "ecmdb/ecmdb.h"
 #include "jpegblob.h"
 
 

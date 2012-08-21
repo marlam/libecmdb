@@ -5,4 +5,4 @@
 # permitted in any medium without royalty provided the copyright notice and this
 # notice are preserved. This file is offered as-is, without any warranty.
 
-SUBDIRS = base glvm ecm
+SUBDIRS = base glvm ecmdb

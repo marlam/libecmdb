@@ -33,7 +33,7 @@
  */
 
 #include <cstddef>
-#include <ecm/version.h>
+#include <ecmdb/version.h>
 
 /**
  * Ellipsoid Cube Map (ECM):
@@ -476,17 +476,17 @@ public:
 /*@{*/
 
 /**
- * \brief       Get the libecm version.
+ * \brief       Get the libecmdb version.
  * \param major Buffer for the major version number, or NULL.
  * \param minor Buffer for the minor version number, or NULL.
  * \param patch Buffer for the patch version number, or NULL.
- * \return      The libecm version string.
+ * \return      The libecmdb version string.
  *
  * This function returns the version string "MAJOR.MINOR.PATCH".
  * If the pointers \a major, \a minor, \a patch are not NULL,
  * the requested version number will be stored there.
  */
-const char* ecm_version(int* major, int* minor, int* patch);
+const char* ecmdb_version(int* major, int* minor, int* patch);
 
 /*@}*/
 

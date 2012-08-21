@@ -10,12 +10,12 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: ecm
+Name: ecmdb
 Description: Library to access Ellipsoid Cube Map (ECM) data bases
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@
 Requires:
 Requires.private: gta
-Libs: -L${libdir} -lecm
+Libs: -L${libdir} -lecmdb
 Libs.private: @LTLIBJPEG@
 Cflags: -I${includedir}

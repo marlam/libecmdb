@@ -1,0 +1,19 @@
+/*
+ * Copyright (C) 2011, 2012
+ * Computer Graphics Group, University of Siegen, Germany.
+ * Written by Martin Lambers <martin.lambers@uni-siegen.de>.
+ * See http://www.cg.informatik.uni-siegen.de/ for contact information.
+ *
+ * All rights reserved.
+ */
+
+#ifndef ECMDB_VERSION_H
+#define ECMDB_VERSION_H
+
+#define ECMDB_VERSION "@ECMDB_VERSION@"
+#define ECMDB_VERSION_MAJOR @ECMDB_VERSION_MAJOR@
+#define ECMDB_VERSION_MINOR @ECMDB_VERSION_MINOR@
+#define ECMDB_VERSION_PATCH @ECMDB_VERSION_PATCH@
+#define ECMDB_VERSION_NUMBER @ECMDB_VERSION_NUMBER@
+
+#endif

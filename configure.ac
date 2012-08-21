@@ -18,8 +18,8 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([libecm], [0.6.0], [martin.lambers@uni-siegen.de], [libecm], [http://www.cg.informatik.uni-siegen.de/])
-AC_CONFIG_SRCDIR([src/ecm/ecm/ecm.h])
+AC_INIT([libecmdb], [0.6.1], [martin.lambers@uni-siegen.de], [libecmdb], [http://www.cg.informatik.uni-siegen.de/])
+AC_CONFIG_SRCDIR([src/ecmdb/ecmdb/ecm.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
@@ -97,14 +97,14 @@ if test "$HAVE_LIBJPEG" != "yes"; then
     AC_MSG_ERROR([libjpeg not found])
 fi
 
-dnl libecm package version
-AC_SUBST([ECM_VERSION], [$PACKAGE_VERSION])
-AC_SUBST([ECM_VERSION_MAJOR], [`echo $ECM_VERSION | sed -e 's/\(.*\)\..*\..*/\1/'`])
-AC_SUBST([ECM_VERSION_MINOR], [`echo $ECM_VERSION | sed -e 's/.*\.\(.*\)\..*/\1/'`])
-AC_SUBST([ECM_VERSION_PATCH], [`echo $ECM_VERSION | sed -e 's/.*\..*\.\(.*\)/\1/' -e 's/[[^0-9]].*//'`])
-AC_SUBST([ECM_VERSION_NUMBER], [`printf "0x%02x%02x%02x" $ECM_VERSION_MAJOR $ECM_VERSION_MINOR $ECM_VERSION_PATCH`])
+dnl libecmdb package version
+AC_SUBST([ECMDB_VERSION], [$PACKAGE_VERSION])
+AC_SUBST([ECMDB_VERSION_MAJOR], [`echo $ECMDB_VERSION | sed -e 's/\(.*\)\..*\..*/\1/'`])
+AC_SUBST([ECMDB_VERSION_MINOR], [`echo $ECMDB_VERSION | sed -e 's/.*\.\(.*\)\..*/\1/'`])
+AC_SUBST([ECMDB_VERSION_PATCH], [`echo $ECMDB_VERSION | sed -e 's/.*\..*\.\(.*\)/\1/' -e 's/[[^0-9]].*//'`])
+AC_SUBST([ECMDB_VERSION_NUMBER], [`printf "0x%02x%02x%02x" $ECMDB_VERSION_MAJOR $ECMDB_VERSION_MINOR $ECMDB_VERSION_PATCH`])
 
-dnl libecm shared library version
+dnl libecmdb shared library version
 dnl See http://www.gnu.org/software/libtool/manual/libtool.html#Updating-version-info
 dnl for a description of library versioning. In summary:
 dnl Library code modified:            REVISION++
@@ -121,9 +121,9 @@ AC_CONFIG_FILES([Makefile \
 	doc/doxyfile \
 	src/base/Makefile \
 	src/glvm/Makefile \
-	src/ecm/Makefile \
-	src/ecm/ecm/version.h \
-	src/ecm/ecm.pc \
+	src/ecmdb/Makefile \
+	src/ecmdb/ecmdb/version.h \
+	src/ecmdb/ecmdb.pc \
 	src/Makefile \
 	tests/Makefile \
 	])

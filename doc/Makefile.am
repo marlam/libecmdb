@@ -13,7 +13,7 @@ BUILT_SOURCES = reference/index.html
 nobase_nodist_doc_DATA = $(wildcard reference/*)
 CLEANFILES = $(wildcard reference/*)
 
-reference/index.html: doxyfile $(top_srcdir)/src/ecm/ecm/ecm.h $(top_srcdir)/src/ecm/ecm/ecmdb.h
+reference/index.html: doxyfile $(top_srcdir)/src/ecmdb/ecmdb/ecm.h $(top_srcdir)/src/ecmdb/ecmdb/ecmdb.h
 	$(DOXYGEN) doxyfile
 
 endif

@@ -17,7 +17,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/glvm \
 	-I$(top_srcdir)/src/ecm/ecm
 
-LDADD = ../src/ecm/libecm.la \
+LDADD = ../src/ecm/libecmdb.la \
        ../src/base/libbase.la \
 	$(LIBICONV)
 

@@ -27,7 +27,7 @@
 
 #include "glvm.h"
 
-#include "ecm/ecm.h"
+#include "ecmdb/ecm.h"
 
 using namespace glvm;
 
@@ -746,10 +746,10 @@ void ecm::quad_base_data(int quad_side, int quad_level, int quad_x, int quad_y,
 const char* ecm_version(int* major, int* minor, int* patch)
 {
     if (major)
-        *major = ECM_VERSION_MAJOR;
+        *major = ECMDB_VERSION_MAJOR;
     if (minor)
-        *minor = ECM_VERSION_MINOR;
+        *minor = ECMDB_VERSION_MINOR;
     if (patch)
-        *patch = ECM_VERSION_PATCH;
-    return ECM_VERSION;
+        *patch = ECMDB_VERSION_PATCH;
+    return ECMDB_VERSION;
 }
