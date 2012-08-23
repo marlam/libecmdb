@@ -88,7 +88,6 @@ if test "$HAVE_LIBGTA" != "1"; then
 fi
 
 dnl libjpeg
-AC_LIB_FROMPACKAGE([jpeg], [jpeg])
 AC_LIB_HAVE_LINKFLAGS([jpeg], [],
     [#include <stdio.h>
      #include <jpeglib.h>],
