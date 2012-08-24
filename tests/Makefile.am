@@ -15,9 +15,9 @@ TESTS = $(check_PROGRAMS)
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/base \
 	-I$(top_srcdir)/src/glvm \
-	-I$(top_srcdir)/src/ecm/ecm
+	-I$(top_srcdir)/src/ecmdb
 
-LDADD = ../src/ecm/libecmdb.la \
+LDADD = ../src/ecmdb/libecmdb.la \
        ../src/base/libbase.la \
 	$(LIBICONV)
 

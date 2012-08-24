@@ -22,7 +22,7 @@
 
 #include "msg.h"
 
-#include "ecm.h"
+#include "ecm/ecm.h"
 #include "glvm-str.h"
 
 using namespace glvm;
