@@ -85,7 +85,8 @@ public:
         category_invalid = 0,           /**< \brief Invalid data base */
         category_elevation = 1,         /**< \brief Elevation data (one channel, type int16 or float32) */
         category_texture = 2,           /**< \brief Texture data SRGB (three channels, type uint8) */
-        category_data = 3               /**< \brief Unspecified data */
+        category_sar_amplitude = 3,     /**< \brief SAR amplitude data (one channel, type float32 normalized to [0,1]) */
+        category_data = 4,              /**< \brief Unspecified data */
     };
 
     /** Data type */
@@ -99,8 +100,8 @@ public:
     /** \name Meta data **/
     /*@{*/
 
-    /** Global meta data for the whole data base */
-    class global_metadata
+    /** Meta data. Stored for each quad and also once for the whole data base. */
+    class metadata
     {
     public:
         ecmdb::category_t category;   /**< \brief ecmdb::category */
@@ -112,13 +113,20 @@ public:
             } elevation;
             /* Meta data for ecmdb::category_texture */
             // empty
+            /* Meta data for ecmdb::category_sar_amplitude */
+            struct {
+                float min;      /**< Minimum SAR amplitude > 0 */
+                float max;      /**< Maximum SAR amplitude */
+                double sum;     /**< Sum of all valid SAR amplitude values */
+                unsigned long long valid;       /**< Number of valid SAR amplitude values */
+            } sar_amplitude;
             /* Meta data for ecmdb::category_data */
             // empty
         };
         /** Constructor for invalid meta data */
-        global_metadata() : category(category_invalid) { }
+        metadata() : category(category_invalid) { }
         /** Constructor for valid meta data of the given category */
-        global_metadata(ecmdb::category_t category) { create(category); }
+        metadata(ecmdb::category_t category) { create(category); }
         /** Create valid meta data for the given category */
         void create(ecmdb::category_t category);
         /** Return whether this meta data is valid */
@@ -133,32 +141,6 @@ public:
         void write(const std::string& dirname) const;
     private:
         void check_validity(const std::string& source = "") const;
-    };
-
-    /** Per-quad meta data */
-    class quad_metadata
-    {
-    public:
-        ecmdb::category_t category;   /**< \brief ecmdb::category */
-        union {
-            /** Meta data for ecmdb::category_elevation */
-            struct {
-                float min;      /**< Minimum elevation in this data base */
-                float max;      /**< Maximum elevation in this data base */
-            } elevation;
-            /* Meta data for ecmdb::category_texture */
-            // empty
-            /* Meta data for ecmdb::category_data */
-            // empty
-        };
-        /** Constructor for invalid meta data */
-        quad_metadata() : category(category_invalid) { }
-        /** Constructor for valid meta data of the given category */
-        quad_metadata(ecmdb::category_t category) { create(category); }
-        /** Create valid meta data for the given category */
-        void create(ecmdb::category_t category);
-        /** Return whether this meta data is valid */
-        bool is_valid() const { return category >= 0; }
     };
 
 private:
@@ -383,7 +365,7 @@ public:
      * Otherwise, the mask buffer stores the value 255 for all valid data samples and 0 for all invalid data samples.
      */
     void load_quad(const std::string& filename, void* data, uint8_t* mask, bool* all_valid,
-            quad_metadata* meta) const;
+            metadata* meta) const;
 
     /* The rest of the interface is only interesting for creating new databases. This is what the ecmdb tool does.
      * Refer to its documentation and source code. */
@@ -392,9 +374,9 @@ public:
             category_t category, type_t type, int channels, int overlap, float data_offset, float data_factor,
             const std::string& short_description, const std::vector<std::string>& description);
     void write(const std::string& dirname) const;
-    void load_quad_meta(const std::string& filename, quad_metadata* meta) const;
+    void load_quad_meta(const std::string& filename, metadata* meta) const;
     void save_quad(const std::string& filename, const void* data, const uint8_t* mask, bool all_valid,
-            const quad_metadata* meta,
+            const metadata* meta,
             int compression /* 0=none, 1=lossless, 2=lossy */, int lossy_compression_quality = 80 /* 1-100*/) const;
     void add_quad(int side, int x, int y);
     void close();

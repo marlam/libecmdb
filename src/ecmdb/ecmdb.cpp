@@ -185,13 +185,15 @@ void ecmdb::check_validity(const std::string& source) const
     }
     if ((_category != category_elevation
                 && _category != category_texture
-                && _category != category_data)
+                && _category != category_data
+                && _category != category_sar_amplitude)
             || (_type != type_uint8
                 && _type != type_int16
                 && _type != type_float32)
             || (_category == category_elevation && (_channels != 1 || (_type != type_float32 && _type != type_int16)))
             || (_category == category_texture && ((_channels != 1 && _channels != 3) || _type != type_uint8))
-            || (_category == category_data && (_channels != 1 || (_type != type_float32 && _type != type_int16)))) {
+            || (_category == category_data && (_channels != 1 || (_type != type_float32 && _type != type_int16)))
+            || (_category == category_sar_amplitude && (_channels != 1 || _type != type_float32))) {
         throw exc("Invalid database properties" + (source.empty() ? "" : " in " + source));
     }
 }
@@ -283,6 +285,8 @@ void ecmdb::open(const std::string& dirname, const std::string& original_url)
                     _category = category_texture;
                 } else if (line.find("Data", 10) != std::string::npos) {
                     _category = category_data;
+                } else if (line.find("SAR-Amplitude", 10) != std::string::npos) {
+                    _category = category_sar_amplitude;
                 } else {
                     throw exc("Invalid Category field in " + orig_url + "/ecmdb.txt");
                 }
@@ -351,6 +355,7 @@ void ecmdb::write(const std::string& dirname) const
     fprintf(info_file, "Category: %s\n",
             _category == category_elevation ? "Elevation"
             : _category == category_texture ? "Texture"
+            : _category == category_sar_amplitude ? "SAR-Amplitude"
             : "Data");
     fprintf(info_file, "Type: %s\n",
             _type == type_uint8 ? "uint8" : _type == type_int16 ? "int16" : "float32");
@@ -386,32 +391,41 @@ void ecmdb::close()
     _description.clear();
 }
 
-void ecmdb::global_metadata::create(ecmdb::category_t category)
+void ecmdb::metadata::create(ecmdb::category_t category)
 {
     this->category = category;
     if (category == ecmdb::category_elevation) {
         elevation.min = 0.0f;
         elevation.max = 0.0f;
+    } else if (category == ecmdb::category_sar_amplitude) {
+        sar_amplitude.min = std::numeric_limits<float>::max();
+        sar_amplitude.max = 0.0f;
+        sar_amplitude.sum = 0.0;
+        sar_amplitude.valid = 0;
     }
 }
 
-void ecmdb::global_metadata::check_validity(const std::string& source) const
+void ecmdb::metadata::check_validity(const std::string& source) const
 {
-    if ((category != ecmdb::category_elevation && category != ecmdb::category_texture && category != ecmdb::category_data)
+    if ((category != ecmdb::category_elevation
+                && category != ecmdb::category_texture
+                && category != ecmdb::category_data
+                && category != ecmdb::category_sar_amplitude)
             || (category == ecmdb::category_elevation
                 && (!std::isfinite(elevation.min) || !std::isfinite(elevation.max)
-                    || elevation.min > elevation.max))) {
+                    || elevation.min > elevation.max))
+            || (category == ecmdb::category_sar_amplitude
+                && (!std::isfinite(sar_amplitude.min) || sar_amplitude.min < 0.0f
+                    || !std::isfinite(sar_amplitude.max)
+                    || !std::isfinite(sar_amplitude.sum)))
+       ) {
         throw exc("Invalid metadata" + (source.empty() ? "" : " in " + source));
     }
 }
 
-void ecmdb::global_metadata::open(ecmdb::category_t category, const std::string& dirname, const std::string& original_url)
+void ecmdb::metadata::open(ecmdb::category_t category, const std::string& dirname, const std::string& original_url)
 {
-    this->category = category;
-    if (category == ecmdb::category_elevation) {
-        elevation.min = 0.0f;
-        elevation.max = 0.0f;
-    }
+    create(category);
     std::string orig_url = original_url.empty() ? dirname : original_url;
     try {
         FILE* meta_file = fio::open(dirname + "/meta.txt", "r");
@@ -423,6 +437,13 @@ void ecmdb::global_metadata::open(ecmdb::category_t category, const std::string&
             if (category == ecmdb::category_elevation) {
                 if (       std::sscanf(line.c_str(), "Elevation-Min: %f", &elevation.min) == 1
                         || std::sscanf(line.c_str(), "Elevation-Max: %f", &elevation.max) == 1) {
+                    continue;
+                }
+            } else if (category == ecmdb::category_sar_amplitude) {
+                if (       std::sscanf(line.c_str(), "SAR-Amplitude-Min: %f", &sar_amplitude.min) == 1
+                        || std::sscanf(line.c_str(), "SAR-Amplitude-Max: %f", &sar_amplitude.max) == 1
+                        || std::sscanf(line.c_str(), "SAR-Amplitude-Sum: %lf", &sar_amplitude.sum) == 1
+                        || std::sscanf(line.c_str(), "SAR-Amplitude-Valid: %Lu", &sar_amplitude.valid) == 1) {
                     continue;
                 }
             }
@@ -441,18 +462,23 @@ void ecmdb::global_metadata::open(ecmdb::category_t category, const std::string&
     }
 }
 
-void ecmdb::global_metadata::write(const std::string& dirname) const
+void ecmdb::metadata::write(const std::string& dirname) const
 {
     fio::mkdir_p(dirname);
     FILE* meta_file = fio::open(dirname + "/meta.txt", "w");
     if (category == ecmdb::category_elevation) {
         fprintf(meta_file, "Elevation-Min: %s\n", str::from(elevation.min).c_str());
         fprintf(meta_file, "Elevation-Max: %s\n", str::from(elevation.max).c_str());
+    } else if (category == ecmdb::category_sar_amplitude) {
+        fprintf(meta_file, "SAR-Amplitude-Min: %s\n", str::from(sar_amplitude.min).c_str());
+        fprintf(meta_file, "SAR-Amplitude-Max: %s\n", str::from(sar_amplitude.max).c_str());
+        fprintf(meta_file, "SAR-Amplitude-Sum: %s\n", str::from(sar_amplitude.sum).c_str());
+        fprintf(meta_file, "SAR-Amplitude-Valid: %s\n", str::from(sar_amplitude.valid).c_str());
     }
     fio::close(meta_file, dirname + "/meta.txt");
 }
 
-void ecmdb::global_metadata::save(std::ostream& os) const
+void ecmdb::metadata::save(std::ostream& os) const
 {
     s11n::save(os, static_cast<int>(category));
     if (category == ecmdb::category_elevation) {
@@ -460,10 +486,15 @@ void ecmdb::global_metadata::save(std::ostream& os) const
         s11n::save(os, elevation.max);
     } else if (category == ecmdb::category_texture) {
     } else if (category == ecmdb::category_data) {
+    } else if (category == ecmdb::category_sar_amplitude) {
+        s11n::save(os, sar_amplitude.min);
+        s11n::save(os, sar_amplitude.max);
+        s11n::save(os, sar_amplitude.sum);
+        s11n::save(os, sar_amplitude.valid);
     }
 }
 
-void ecmdb::global_metadata::load(std::istream& is)
+void ecmdb::metadata::load(std::istream& is)
 {
     int x;
     s11n::load(is, x); category = static_cast<ecmdb::category_t>(x);
@@ -472,34 +503,38 @@ void ecmdb::global_metadata::load(std::istream& is)
         s11n::load(is, elevation.max);
     } else if (category == ecmdb::category_texture) {
     } else if (category == ecmdb::category_data) {
+    } else if (category == ecmdb::category_sar_amplitude) {
+        s11n::load(is, sar_amplitude.min);
+        s11n::load(is, sar_amplitude.max);
+        s11n::load(is, sar_amplitude.sum);
+        s11n::load(is, sar_amplitude.valid);
     } else {
         category = category_invalid;
     }
 }
 
-void ecmdb::quad_metadata::create(ecmdb::category_t category)
+static void get_meta_from_gta(ecmdb::category_t category, const std::string& filename, const gta::header& data_hdr, ecmdb::metadata* meta)
 {
-    this->category = category;
+    meta->create(category);
     if (category == ecmdb::category_elevation) {
-        elevation.min = 0.0f;
-        elevation.max = 0.0f;
-    }
-}
-
-void ecmdb::load_quad_meta(const std::string& filename, quad_metadata* meta) const
-{
-    meta->create(category());
-    if (category() == category_elevation) {
-        FILE* file = fio::open(filename, "r", O_NOATIME);
-        gta::header data_hdr;
-        data_hdr.read_from(file);
-        fio::close(file, filename);
         const char* val;
-        val = data_hdr.component_taglist(0).get("X-ECM-MIN");
+        val = data_hdr.component_taglist(0).get("X-ECM-ELEVATION-MIN");
+        if (!val)
+            val = data_hdr.component_taglist(0).get("X-ECM-MIN");
+        if (!val)
+            val = data_hdr.component_taglist(0).get("X-PLEW-MIN");      // backward compat; remove soon
+        if (!val)
+            val = data_hdr.component_taglist(0).get("MIN");             // backward compat; remove soon
         if (!val)
             throw exc(std::string("Missing meta information in ") + filename);
         meta->elevation.min = str::to<float>(val);
-        val = data_hdr.component_taglist(0).get("X-ECM-MAX");
+        val = data_hdr.component_taglist(0).get("X-ECM-ELEVATION-MAX");
+        if (!val)
+            val = data_hdr.component_taglist(0).get("X-ECM-MAX");
+        if (!val)
+            val = data_hdr.component_taglist(0).get("X-PLEW-MAX");      // backward compat; remove soon
+        if (!val)
+            val = data_hdr.component_taglist(0).get("MAX");             // backward compat; remove soon
         if (!val)
             throw exc(std::string("Missing meta information in ") + filename);
         meta->elevation.max = str::to<float>(val);
@@ -507,10 +542,44 @@ void ecmdb::load_quad_meta(const std::string& filename, quad_metadata* meta) con
                 || !(meta->elevation.min <= meta->elevation.max)) {
             throw exc(std::string("Invalid meta information in ") + filename);
         }
+    } else if (category == ecmdb::category_sar_amplitude) {
+        const char* val;
+        val = data_hdr.component_taglist(0).get("X-ECM-SAR-AMPLITUDE-MIN");
+        if (!val)
+            throw exc(std::string("Missing meta information in ") + filename);
+        meta->sar_amplitude.min = str::to<float>(val);
+        val = data_hdr.component_taglist(0).get("X-ECM-SAR-AMPLITUDE-MAX");
+        if (!val)
+            throw exc(std::string("Missing meta information in ") + filename);
+        meta->sar_amplitude.max = str::to<float>(val);
+        val = data_hdr.component_taglist(0).get("X-ECM-SAR-AMPLITUDE-SUM");
+        if (!val)
+            throw exc(std::string("Missing meta information in ") + filename);
+        meta->sar_amplitude.sum = str::to<float>(val);
+        val = data_hdr.component_taglist(0).get("X-ECM-SAR-AMPLITUDE-VALID");
+        if (!val)
+            throw exc(std::string("Missing meta information in ") + filename);
+        meta->sar_amplitude.valid = str::to<unsigned long long>(val);
+        if (!std::isfinite(meta->sar_amplitude.min) || !std::isfinite(meta->sar_amplitude.max)
+                || !(meta->sar_amplitude.min <= meta->sar_amplitude.max)
+                || !std::isfinite(meta->sar_amplitude.sum)) {
+            throw exc(std::string("Invalid meta information in ") + filename);
+        }
     }
 }
 
-void ecmdb::load_quad(const std::string& filename, void* data, uint8_t* mask, bool* all_valid, quad_metadata* meta) const
+void ecmdb::load_quad_meta(const std::string& filename, metadata* meta) const
+{
+    if (category() == category_elevation || category() == category_sar_amplitude) {
+        FILE* file = fio::open(filename, "r", O_NOATIME);
+        gta::header data_hdr;
+        data_hdr.read_from(file);
+        fio::close(file, filename);
+        get_meta_from_gta(category(), filename, data_hdr, meta);
+    }
+}
+
+void ecmdb::load_quad(const std::string& filename, void* data, uint8_t* mask, bool* all_valid, metadata* meta) const
 {
     FILE* f = fio::open(filename, "r", O_NOATIME);
     gta::header data_hdr;
@@ -548,34 +617,11 @@ void ecmdb::load_quad(const std::string& filename, void* data, uint8_t* mask, bo
     }
     fio::advise(f, POSIX_FADV_DONTNEED, filename);
     fio::close(f);
-    meta->create(category());
-    if (category() == ecmdb::category_elevation) {
-        const char* val;
-        val = data_hdr.component_taglist(0).get("X-ECM-MIN");
-        if (!val)
-            val = data_hdr.component_taglist(0).get("X-PLEW-MIN");      // backward compat; remove soon
-        if (!val)
-            val = data_hdr.component_taglist(0).get("MIN");             // backward compat; remove soon
-        if (!val)
-            throw exc(std::string("Missing meta information in ") + filename);
-        meta->elevation.min = str::to<float>(val);
-        val = data_hdr.component_taglist(0).get("X-ECM-MAX");
-        if (!val)
-            val = data_hdr.component_taglist(0).get("X-PLEW-MAX");      // backward compat; remove soon
-        if (!val)
-            val = data_hdr.component_taglist(0).get("MAX");             // backward compat; remove soon
-        if (!val)
-            throw exc(std::string("Missing meta information in ") + filename);
-        meta->elevation.max = str::to<float>(val);
-        if (!std::isfinite(meta->elevation.min) || !std::isfinite(meta->elevation.max)
-                || !(meta->elevation.min <= meta->elevation.max)) {
-            throw exc(std::string("Invalid meta information in ") + filename);
-        }
-    }
+    get_meta_from_gta(category(), filename, data_hdr, meta);
 }
 
 void ecmdb::save_quad(const std::string& filename, const void* data, const uint8_t* mask, bool all_valid,
-        const quad_metadata* meta,
+        const metadata* meta,
         int compression /* 0=none, 1=lossless, 2=lossy */, int lossy_compression_quality /* 1-100*/) const
 {
     FILE* quadfile = fio::open(filename, "w");
@@ -606,8 +652,13 @@ void ecmdb::save_quad(const std::string& filename, const void* data, const uint8
         if (compression)
             data_hdr.set_compression(type() == type_uint8 ? gta::bzip2 : gta::xz);
         if (category() == category_elevation) {
-            data_hdr.component_taglist(0).set("X-ECM-MIN", str::from(meta->elevation.min).c_str());
-            data_hdr.component_taglist(0).set("X-ECM-MAX", str::from(meta->elevation.max).c_str());
+            data_hdr.component_taglist(0).set("X-ECM-ELEVATION-MIN", str::from(meta->elevation.min).c_str());
+            data_hdr.component_taglist(0).set("X-ECM-ELEVATION-MAX", str::from(meta->elevation.max).c_str());
+        } else if (category() == category_sar_amplitude) {
+            data_hdr.component_taglist(0).set("X-ECM-SAR-AMPLITUDE-MIN", str::from(meta->sar_amplitude.min).c_str());
+            data_hdr.component_taglist(0).set("X-ECM-SAR-AMPLITUDE-MAX", str::from(meta->sar_amplitude.max).c_str());
+            data_hdr.component_taglist(0).set("X-ECM-SAR-AMPLITUDE-SUM", str::from(meta->sar_amplitude.sum).c_str());
+            data_hdr.component_taglist(0).set("X-ECM-SAR-AMPLITUDE-VALID", str::from(meta->sar_amplitude.valid).c_str());
         }
         data_hdr.write_to(quadfile);
         data_hdr.write_data(quadfile, data);
