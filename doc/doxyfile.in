@@ -45,7 +45,7 @@ PROJECT_NUMBER         = @PACKAGE_VERSION@
 # for a project that appears at the top of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = Library for the Ellipsoidal Cube Map (ECM) projection and hierarchical data base
+PROJECT_BRIEF          = "Ellipsoidal Cube Map (ECM) projection and hierarchical data base"
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is
 # included in the documentation. The maximum height of the logo should not
@@ -135,7 +135,7 @@ FULL_PATH_NAMES        = YES
 # If left blank the directory from which doxygen is run is used as the
 # path to strip.
 
-STRIP_FROM_PATH        = @top_srcdir@/src
+STRIP_FROM_PATH        = @top_srcdir@/src/ecmdb
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of
 # the path mentioned in the documentation of a class, which tells
