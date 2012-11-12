@@ -22,14 +22,18 @@
 #define ECM_H
 
 /**
+ * \mainpage Ellipsoid Cube Map (ECM) data bases
+ *
+ * This library provides two clases:
+ * - \link ecm \endlink: The basic map projection and quadtree definition
+ * - \link ecmdb \endlink: A hierarchical data base for geocoded raster data based on ECM
+ */
+
+/**
  * \file ecm.h
  * \brief The ECM class.
  *
  * The ECM class provides the basic Ellipsoid Cube Map model.
- */
-
-/**
- * \mainpage Ellipsoid Cube Map (ECM)
  */
 
 #include <cstddef>
