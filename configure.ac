@@ -63,6 +63,7 @@ fi
 AM_CONDITIONAL([BUILD_REF], [test "$build_ref" = "yes"])
 
 dnl Feature checks needed by the base modules
+AC_LANG_PUSH([C])
 dnl - dbg
 AC_CHECK_FUNCS([backtrace sigaction])
 dnl - fio
@@ -71,6 +72,7 @@ AC_CHECK_FUNCS([fdatasync fnmatch fseeko ftello getpwuid link mmap posix_fadvise
 dnl - str
 AM_ICONV([])
 AC_CHECK_FUNCS([nl_langinfo vasprintf wcswidth])
+AC_LANG_POP([C])
 
 dnl Feature checks needed by ecm.cpp
 AC_CHECK_FUNCS([sincos])
