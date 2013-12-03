@@ -7,13 +7,13 @@
 
 noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
-	blob.h \
-	compiler.h \
+	blb.h \
+	hnt.h \
 	dbg.h dbg.cpp \
 	exc.h exc.cpp \
 	fio.h fio.cpp \
 	gettext.h \
-	intcheck.h \
+	chk.h \
 	msg.h msg.cpp \
-	s11n.h s11n.cpp \
+	ser.h ser.cpp \
 	str.h str.cpp

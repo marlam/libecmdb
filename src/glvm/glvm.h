@@ -1,21 +1,31 @@
 /*
  * C++ vector and matrix classes that resemble GLSL style.
  *
- * Copyright (C) 2008, 2009, 2010, 2011, 2012
+ * Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013
  * Martin Lambers <marlam@marlam.de>
+ * All rights reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * - Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * - Neither the name of the <ORGANIZATION> nor the names of its contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission. *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 /*
@@ -45,7 +55,11 @@
 #include <cmath>
 #include <climits>
 #include <cstdlib>
-#include <cstdint>
+#if __cplusplus >= 201103L
+# include <cstdint>
+#else
+# include <stdint.h>
+#endif
 
 #include <limits>
 #include <string>
@@ -668,11 +682,43 @@ namespace glvm
 
     using std::exp;
 
+#if __cplusplus >= 201103L
     using std::exp2;
+#elif (defined _MSC_VER && _MSC_VER <= 1600)
+    inline float exp2(float x) { return std::pow(2.0f, x); }
+    inline double exp2(double x) { return std::pow(2.0, x); }
+    inline long double exp2(long double x) { return std::pow(2.0L, x); }
+#else
+    using ::exp2;
+    inline float exp2(const float x)
+    {
+        return ::exp2f(x);
+    }
+    inline long double exp2(const long double x)
+    {
+        return ::exp2l(x);
+    }
+#endif
 
     using std::log;
 
+#if __cplusplus >= 201103L
     using std::log2;
+#elif (defined _MSC_VER && _MSC_VER <= 1600)
+    inline float log2(float x) { return std::log(x) / std::log(2.0f); }
+    inline double log2(double x) { return std::log(x) / std::log(2.0); }
+    inline long double log2(long double x) { return std::log(x) / std::log(2.0L); }
+#else
+    using ::log2;
+    inline float log2(const float x)
+    {
+        return ::log2f(x);
+    }
+    inline long double log2(const long double x)
+    {
+        return ::log2l(x);
+    }
+#endif
 
     using std::log10;
 
@@ -693,9 +739,41 @@ namespace glvm
         return 1.0L / std::sqrt(x);
     }
 
+#if __cplusplus >= 201103L
     using std::cbrt;
+#elif (defined _MSC_VER && _MSC_VER <= 1600)
+    inline float cbrt(float x) { return x < 0.0f ? -std::pow(-x, 1.0f / 3.0f) : std::pow(x, 1.0f / 3.0f); }
+    inline double cbrt(double x) { return x < 0.0 ? -std::pow(-x, 1.0 / 3.0) : std::pow(x, 1.0 / 3.0); }
+    inline long double cbrt(long double x) { return x < 0.0L ? -std::pow(-x, 1.0L / 3.0L) : std::pow(x, 1.0L / 3.0L); }
+#else
+    using ::cbrt;
+    inline float cbrt(const float x)
+    {
+        return ::cbrtf(x);
+    }
+    inline long double cbrt(const long double x)
+    {
+        return ::cbrtl(x);
+    }
+#endif
 
+#if __cplusplus >= 201103L
     using std::round;
+#elif (defined _MSC_VER && _MSC_VER <= 1600)
+    inline float round(float x) { return x < 0.0f ? std::ceil(x - 0.5f) : std::floor(x + 0.5f); }
+    inline double round(double x) { return x < 0.0 ? std::ceil(x - 0.5) : std::floor(x + 0.5); }
+    inline long double round(long double x) { return x < 0.0L ? std::ceil(x - 0.5L) : std::floor(x + 0.5L); }
+#else
+    using ::round;
+    inline float round(const float x)
+    {
+        return ::roundf(x);
+    }
+    inline long double round(const long double x)
+    {
+        return ::roundl(x);
+    }
+#endif
 
     using std::floor;
 
@@ -716,13 +794,40 @@ namespace glvm
         return x - std::floor(x);
     }
 
+#if (defined _MSC_VER && _MSC_VER <= 1600)
+    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
+    inline bool isfinite(float x) { return ::_finite(x); }
+    inline bool isfinite(double x) { return ::_finite(x); }
+    inline bool isfinite(long double x) { return ::_finite(x); }
+#else
     using std::isfinite;
+#endif
 
-    using std::isinf;
-
+#if (defined _MSC_VER && _MSC_VER <= 1600)
+    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
+    inline bool isnan(float x) { return ::_isnan(x); }
+    inline bool isnan(double x) { return ::_isnan(x); }
+    inline bool isnan(long double x) { return ::_isnan(x); }
+#else
     using std::isnan;
+#endif
 
+#if (defined _MSC_VER && _MSC_VER <= 1600)
+    inline bool isinf(float x) { return !isnan(x) && !isfinite(x); }
+    inline bool isinf(double x) { return !isnan(x) && !isfinite(x); }
+    inline bool isinf(long double x) { return !isnan(x) && !isfinite(x); }
+#else
+    using std::isinf;
+#endif
+
+#if (defined _MSC_VER && _MSC_VER <= 1600)
+    // XXX: MSVC only has the 'double' version; it is unclear if conversion works as expected
+    inline bool isnormal(float x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
+    inline bool isnormal(double x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
+    inline bool isnormal(long double x) { return ::_fpclass(x) == _FPCLASS_NN || ::_fpclass(x) == _FPCLASS_PN; }
+#else
     using std::isnormal;
+#endif
 
     inline float mix(float x, float y, float alpha)
     {
@@ -1107,12 +1212,12 @@ namespace glvm
     {
         bool result;
 
-        if (std::isinf(a) || std::isinf(b))
+        if (glvm::isinf(a) || glvm::isinf(b))
         {
-            result = (std::isinf(a) && std::isinf(b)
+            result = (glvm::isinf(a) && glvm::isinf(b)
                     && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
         }
-        else if (std::isnan(a) || std::isnan(b))
+        else if (glvm::isnan(a) || glvm::isnan(b))
         {
             result = false;
         }
@@ -1149,12 +1254,12 @@ namespace glvm
     {
         bool result;
 
-        if (std::isinf(a) || std::isinf(b))
+        if (glvm::isinf(a) || glvm::isinf(b))
         {
-            result = (std::isinf(a) && std::isinf(b)
+            result = (glvm::isinf(a) && glvm::isinf(b)
                     && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
         }
-        else if (std::isnan(a) || std::isnan(b))
+        else if (glvm::isnan(a) || glvm::isnan(b))
         {
             result = false;
         }
@@ -1191,12 +1296,12 @@ namespace glvm
     {
         bool result;
 
-        if (std::isinf(a) || std::isinf(b))
+        if (glvm::isinf(a) || glvm::isinf(b))
         {
-            result = (std::isinf(a) && std::isinf(b)
+            result = (glvm::isinf(a) && glvm::isinf(b)
                     && static_cast<int>(glvm::sign(a)) == static_cast<int>(glvm::sign(b)));
         }
-        else if (std::isnan(a) || std::isnan(b))
+        else if (glvm::isnan(a) || glvm::isnan(b))
         {
             result = false;
         }
@@ -1299,12 +1404,14 @@ namespace glvm
     // Bonus: log2 for positive integers
     template<typename T> inline T _log2(T x)
     {
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
 #ifdef __GNUC__
-        return x < 1 ? 0 : (sizeof(unsigned int) * CHAR_BIT - 1 - __builtin_clz(x));
+        return x < one ? zero : (sizeof(unsigned int) * CHAR_BIT - 1 - __builtin_clz(x));
 #else
-        T r = 0;
-        while (x > 1) {
-            x >>= 1;
+        T r = zero;
+        while (x > one) {
+            x >>= one;
             r++;
         }
         return r;
@@ -1313,7 +1420,9 @@ namespace glvm
     template<typename T> inline T _log2l(T x)
     {
 #ifdef __GNUC__
-        return x < 1 ? 0 : (sizeof(unsigned long) * CHAR_BIT - 1 - __builtin_clzl(x));
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
+        return x < one ? zero : (sizeof(unsigned long) * CHAR_BIT - 1 - __builtin_clzl(x));
 #else
         return _log2(x);
 #endif
@@ -1321,7 +1430,9 @@ namespace glvm
     template<typename T> inline T _log2ll(T x)
     {
 #ifdef __GNUC__
-        return x < 1 ? 0 : (sizeof(unsigned long long) * CHAR_BIT - 1 - __builtin_clzll(x));
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
+        return x < one ? zero : (sizeof(unsigned long long) * CHAR_BIT - 1 - __builtin_clzll(x));
 #else
         return _log2(x);
 #endif
@@ -1340,7 +1451,9 @@ namespace glvm
     // Bonus: power-of-two check for positive integers
     template<typename T> inline bool _is_pow2(T x)
     {
-        return (x > 0 && (x & (x - 1)) == 0);
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
+        return (x > zero && (x & (x - one)) == zero);
     }
     inline bool is_pow2(signed char x) { return _is_pow2(x); }
     inline bool is_pow2(unsigned char x) { return _is_pow2(x); }
@@ -1356,7 +1469,9 @@ namespace glvm
     // Bonus: return the next power of two, or x itself if it already is a power of two
     template<typename T> inline T _next_pow2(T x)
     {
-        return (x < 1 ? 1 : (x & (x - 1)) == 0 ? x : 1 << (log2(x) + 1));
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
+        return (x < one ? one : (x & (x - one)) == zero ? x : one << (log2(x) + one));
     }
     inline signed char next_pow2(signed char x) { return _next_pow2(x); }
     inline unsigned char next_pow2(unsigned char x) { return _next_pow2(x); }
@@ -1372,7 +1487,9 @@ namespace glvm
     // Bonus: return the next multiple of b (> 0) that is greater than or equal to a (>= 0).
     template<typename T> inline T _next_multiple(T a, T b)
     {
-        return ((a / b) + (a % b == 0 ? 0 : 1)) * b;
+        const T zero = static_cast<T>(0);
+        const T one = static_cast<T>(1);
+        return ((a / b) + (a % b == zero ? zero : one)) * b;
     }
     inline signed char next_multiple(signed char a, signed char b) { return _next_multiple(a, b); }
     inline unsigned char next_multiple(unsigned char a, unsigned char b) { return _next_multiple(a, b); }
@@ -2247,17 +2364,17 @@ namespace glvm
 
         array _faceforward(const array& I, const array& Nref) const
         {
-            return Nref.dot(I) < static_cast<T>(0) ? *this : - *this;
+            return Nref._dot(I) < static_cast<T>(0) ? *this : - *this;
         }
 
         array _reflect(const array& N) const
         {
-            return *this - N * (N.dot(*this) * static_cast<T>(2));
+            return *this - static_cast<T>(2) * N._dot(*this) * N;
         }
 
         array _refract(const array& N, T eta) const
         {
-            const T d = N.dot(*this);
+            const T d = N._dot(*this);
             const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
             return k < static_cast<T>(0) ? array<T, cols, 1>(static_cast<T>(0)) : *this * eta - N * (eta * d + glvm::sqrt(k));
         }
@@ -4077,19 +4194,37 @@ namespace glvm
     template<typename T, int r> vector<T, r> next_multiple(const array<T, 1, r>& v, T x) { return v._next_multiple(x); }
 
     typedef vector<bool, 2> bvec2;
-    typedef vector<int32_t, 2> ivec2;
-    typedef vector<uint32_t, 2> uvec2;
-    typedef vector<float, 2> vec2;
-    typedef vector<double, 2> dvec2;
     typedef vector<bool, 3> bvec3;
-    typedef vector<int32_t, 3> ivec3;
-    typedef vector<uint32_t, 3> uvec3;
-    typedef vector<float, 3> vec3;
-    typedef vector<double, 3> dvec3;
     typedef vector<bool, 4> bvec4;
+    typedef vector<int8_t, 2> ibvec2;
+    typedef vector<int8_t, 3> ibvec3;
+    typedef vector<int8_t, 4> ibvec4;
+    typedef vector<uint8_t, 2> ubvec2;
+    typedef vector<uint8_t, 3> ubvec3;
+    typedef vector<uint8_t, 4> ubvec4;
+    typedef vector<int16_t, 2> svec2;
+    typedef vector<int16_t, 3> svec3;
+    typedef vector<int16_t, 4> svec4;
+    typedef vector<uint16_t, 2> usvec2;
+    typedef vector<uint16_t, 3> usvec3;
+    typedef vector<uint16_t, 4> usvec4;
+    typedef vector<int32_t, 2> ivec2;
+    typedef vector<int32_t, 3> ivec3;
     typedef vector<int32_t, 4> ivec4;
+    typedef vector<uint32_t, 2> uvec2;
+    typedef vector<uint32_t, 3> uvec3;
     typedef vector<uint32_t, 4> uvec4;
+    typedef vector<int64_t, 2> i64vec2;
+    typedef vector<int64_t, 3> i64vec3;
+    typedef vector<int64_t, 4> i64vec4;
+    typedef vector<uint64_t, 2> u64vec2;
+    typedef vector<uint64_t, 3> u64vec3;
+    typedef vector<uint64_t, 4> u64vec4;
+    typedef vector<float, 2> vec2;
+    typedef vector<float, 3> vec3;
     typedef vector<float, 4> vec4;
+    typedef vector<double, 2> dvec2;
+    typedef vector<double, 3> dvec3;
     typedef vector<double, 4> dvec4;
 
 
@@ -4313,7 +4448,7 @@ namespace glvm
 
     template<typename T, int c, int r> matrix<T, c, r> transpose(const matrix<T, r, c>& m) { return m._transpose(); }
 
-    template<typename T, int c, int r> matrix<T, c, r> matrixrixCompMult(const matrix<T, c, r>& m, const matrix<T, c, r>& n) { return m._op_comp_mult(n); }
+    template<typename T, int c, int r> matrix<T, c, r> matrixCompMult(const matrix<T, c, r>& m, const matrix<T, c, r>& n) { return m._op_comp_mult(n); }
 
     template<typename T, int c, int r> matrix<T, c, r> outerProduct(const vector<T, r>& v, const vector<T, c>& w)
     {
@@ -4356,7 +4491,7 @@ namespace glvm
     template<typename T> matrix<T, 3, 3> inverse(const matrix<T, 3, 3>& m)
     {
         // Using cofactors; see
-        // http://en.wikipedia.org/wiki/Invertible_matrixrix
+        // http://en.wikipedia.org/wiki/Invertible_matrix
         // http://en.wikipedia.org/wiki/Minor_(linear_algebra)#Cofactors
         matrix<T, 3, 3> I;
         I.v[0][0] = m.v[1][1] * m.v[2][2] - m.v[2][1] * m.v[1][2];
@@ -4398,13 +4533,13 @@ namespace glvm
     template<typename T> matrix<T, 4, 4> inverse(const matrix<T, 4, 4>& m)
     {
         // Using cofactors; see
-        // http://en.wikipedia.org/wiki/Invertible_matrixrix
+        // http://en.wikipedia.org/wiki/Invertible_matrix
         // http://en.wikipedia.org/wiki/Minor_(linear_algebra)#Cofactors
 
         /* This code was adapted from Equalizer-0.5.0,
-         * src/externals/vmmlib/matrixrix4.h:
+         * src/externals/vmmlib/matrix4.h:
          *
-         * VMMLib - _vectortor & _matrixrix Math Lib
+         * VMMLib - vector & matrix Math Lib
          *
          * @author Jonas Boesch
          * @author Stefan Eilemann
@@ -4433,7 +4568,7 @@ namespace glvm
             m.v[2][2] * m.v[3][3] - m.v[2][3] * m.v[3][2]
         };
 
-        /* first half of co_matrixrix: 24 multiplications, 16 additions */
+        /* first half of co_matrix: 24 multiplications, 16 additions */
         result.v[0][0] = m.v[1][1] * t1[5] - m.v[1][2] * t1[4] + m.v[1][3] * t1[3];
         result.v[1][0] = m.v[1][2] * t1[2] - m.v[1][3] * t1[1] - m.v[1][0] * t1[5];
         result.v[2][0] = m.v[1][3] * t1[0] - m.v[1][1] * t1[2] + m.v[1][0] * t1[4];
@@ -4454,7 +4589,7 @@ namespace glvm
             m.v[0][2] * m.v[1][3] - m.v[0][3] * m.v[1][2]
         };
 
-        /* second half of co_matrixrix: 24 multiplications, 16 additions */
+        /* second half of co_matrix: 24 multiplications, 16 additions */
         result.v[0][2] = m.v[3][1] * t2[5] - m.v[3][2] * t2[4] + m.v[3][3] * t2[3];
         result.v[1][2] = m.v[3][2] * t2[2] - m.v[3][3] * t2[1] - m.v[3][0] * t2[5];
         result.v[2][2] = m.v[3][3] * t2[0] - m.v[3][1] * t2[2] + m.v[3][0] * t2[4];
@@ -4514,6 +4649,11 @@ namespace glvm
         col(r, 2) = col(m, 2) * v.z;
         col(r, 3) = col(m, 3);
         return r;
+    }
+
+    template<typename T> matrix<T, 4, 4> rotate(const matrix<T, 4, 4>& m, T angle, const vector<T, 3>& axis)
+    {
+        return m * toMat4(angle, axis);
     }
 
     template<typename T, int c, int r> matrix<bool, c, r> is_pow2(const matrix<T, c, r>& v) { return v._ispow2(); }
@@ -4605,19 +4745,23 @@ namespace glvm
 
         vector<T, 3> operator*(const vector<T, 3>& v) const
         {
-            return toMat3(*this) * v;
+            // return toMat3(*this) * v;
+            quaternion<T> t = *this * quaternion<T>(v.x, v.y, v.z, static_cast<T>(0)) * conjugate(*this);
+            return vec3(t.x, t.y, t.z);
         }
 
         vector<T, 4> operator*(const vector<T, 4>& v) const
         {
-            return toMat4(*this) * v;
+            //return toMat4(*this) * v;
+            quaternion<T> t = *this * quaternion<T>(v.x, v.y, v.z, static_cast<T>(0)) * conjugate(*this);
+            return vec4(t.x, t.y, t.z, t.w);
         }
     };
 
     template<typename T> T magnitude(const quaternion<T>& q) { return q._length(); }
     template<typename T> quaternion<T> conjugate(const quaternion<T>& q) { return quaternion<T>(-q.x, -q.y, -q.z, q.w); }
-    template<typename T> quaternion<T> inverse(const quaternion<T>& q) { return conjugate(q)._op_scal_div(magnitude(q)); }
-    template<typename T> quaternion<T> normalize(const quaternion<T>& q) { return q._op_scal_div(magnitude(q)); }
+    template<typename T> quaternion<T> inverse(const quaternion<T>& q) { return quaternion<T>(conjugate(q)._op_scal_div(magnitude(q))); }
+    template<typename T> quaternion<T> normalize(const quaternion<T>& q) { return quaternion<T>(q._op_scal_div(magnitude(q))); }
 
     typedef quaternion<float> quat;
     typedef quaternion<double> dquat;
@@ -4704,7 +4848,7 @@ namespace glvm
 
     template<typename T> quaternion<T> toQuat(T angle, const vector<T, 3>& axis)
     {
-        if (all(equal(axis, vector<T, 3>(static_cast<T>(0)))) || equal(angle, static_cast<T>(0))) {
+        if (all(equal(axis, vector<T, 3>(static_cast<T>(0))))) {
             return quaternion<T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1));
         } else {
             vector<T, 3> naxis = normalize(axis);
@@ -4923,6 +5067,32 @@ namespace glvm
                         (static_cast<T>(1) - static_cast<T>(2) * (q.y * q.y + q.z * q.z))));
         }
         return result;
+    }
+
+    /* Replacements for some useful old GLU functions */
+
+    // gluPerspective()
+    template<typename T> frustum<T> perspective(T fovy, T aspect, T zNear, T zFar)
+    {
+        T t = tan(fovy / 2.0f);
+        T top = zNear * t;
+        T bottom = -top;
+        T right = top * aspect;
+        T left = -right;
+        return frustum<T>(left, right, bottom, top, zNear, zFar);
+    }
+
+    // gluLookAt()
+    template<typename T> matrix<T, 4, 4> lookat(const vector<T, 3>& eye, const vector<T, 3>& center, const vector<T, 3>& up)
+    {
+        vector<T, 3> v = normalize(center - eye);
+        vector<T, 3> s = normalize(cross(v, up));
+        vector<T, 3> u = cross(s, v);
+        return translate(matrix<T, 4, 4>(
+                     s.x,  u.x, -v.x, 0.0f,
+                     s.y,  u.y, -v.y, 0.0f,
+                     s.z,  u.z, -v.z, 0.0f,
+                    0.0f, 0.0f, 0.0f, 1.0f), -eye);
     }
 }
 

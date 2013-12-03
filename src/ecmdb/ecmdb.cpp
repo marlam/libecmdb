@@ -31,8 +31,8 @@
 #include "msg.h"
 #include "str.h"
 #include "fio.h"
-#include "s11n.h"
-#include "blob.h"
+#include "ser.h"
+#include "blb.h"
 
 #include "ecmdb/ecmdb.h"
 #include "jpegblob.h"

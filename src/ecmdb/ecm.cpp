@@ -23,7 +23,7 @@
 #include <cstring>
 
 #include "dbg.h"
-#include "compiler.h"
+#include "hnt.h"
 
 #include "glvm.h"
 
