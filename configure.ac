@@ -18,7 +18,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl Autotools init stuff
 AC_PREREQ([2.65])
-AC_INIT([libecmdb], [0.7.1], [martin.lambers@uni-siegen.de], [libecmdb], [http://ecm-planet.sourceforge.net/])
+AC_INIT([libecmdb], [0.7.1], [martin.lambers@uni-siegen.de], [libecmdb], [https://marlam.de/ecm])
 AC_CONFIG_SRCDIR([src/ecmdb/ecmdb/ecm.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
